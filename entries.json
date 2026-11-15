@@ -1,0 +1,861 @@
+{
+  "as_of": "2026-11-15",
+  "entries": [
+    {
+      "challenge": "million-users",
+      "entry": "c-epoll",
+      "language": "C",
+      "approach": "epoll loop per core, own Postgres wire client, group commit, TCP_DEFER_ACCEPT, ISA-L gzip",
+      "dir": "million-users/c-epoll",
+      "upstream": {
+        "repo": "arjaythedev/million-users-challenge",
+        "commit": "c5be4ac4cb5a2b470baa70def6131adcadbb021a",
+        "path": "submissions/c-epoll-unorig-username",
+        "tree": "d2bdb2706a8af8e4fc775113c5fbec43ea76c528"
+      },
+      "prs": [
+        {
+          "number": 10,
+          "title": "Add c-epoll-unorig-username submission",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        },
+        {
+          "number": 90,
+          "title": "c-epoll-unorig-username: at most 4 threads, for fuller Postgres batches",
+          "state": "MERGED",
+          "merged_at": "2026-11-06"
+        },
+        {
+          "number": 96,
+          "title": "c-epoll-unorig-username: one thread per core again, group commit, fixed 2 ms cadence, own Postgres client",
+          "state": "MERGED",
+          "merged_at": "2026-11-07"
+        },
+        {
+          "number": 100,
+          "title": "c-epoll-unorig-username: re-send reads from a lost Postgres connection (10 s watchdog), SCHED_IDLE loops, fewer bytes in",
+          "state": "MERGED",
+          "merged_at": "2026-11-11"
+        },
+        {
+          "number": 104,
+          "title": "c-epoll-unorig-username: TCP_DEFER_ACCEPT, serve the first request straight from accept",
+          "state": "MERGED",
+          "merged_at": "2026-11-08"
+        },
+        {
+          "number": 115,
+          "title": "c-epoll-unorig-username: hedged reads on (20 ms), the variant held on #100",
+          "state": "CLOSED",
+          "merged_at": null
+        },
+        {
+          "number": 129,
+          "title": "c-epoll-unorig-username: submit each pass's socket reads and sends as two io_uring batches",
+          "state": "OPEN",
+          "merged_at": null
+        }
+      ],
+      "result": {
+        "metric": "16 cores",
+        "users": 1000000,
+        "max": true,
+        "req_s": null,
+        "board_prs": [
+          10,
+          90,
+          96,
+          104,
+          100
+        ],
+        "scored": "2026-11-12",
+        "as_of": "2026-11-15",
+        "by_cores": {
+          "16": 1000000,
+          "8": 1430000,
+          "4": 1480000,
+          "2": 990000
+        }
+      }
+    },
+    {
+      "challenge": "million-users",
+      "entry": "rust-uring",
+      "language": "Rust",
+      "approach": "raw io_uring thread per core, own Postgres wire client, reads packed under one Sync, group commit",
+      "dir": "million-users/rust-uring",
+      "upstream": {
+        "repo": "arjaythedev/million-users-challenge",
+        "commit": "c5be4ac4cb5a2b470baa70def6131adcadbb021a",
+        "path": "submissions/rust-uring-unorig-username",
+        "tree": "0730e2eed2fdf4f43d746a821679dea6a6c65aeb"
+      },
+      "prs": [
+        {
+          "number": 30,
+          "title": "Add rust-uring-unorig-username submission",
+          "state": "MERGED",
+          "merged_at": "2026-10-31"
+        },
+        {
+          "number": 73,
+          "title": "rust-uring-unorig-username: reads share a Sync in packs of 64, safer Postgres failure handling",
+          "state": "MERGED",
+          "merged_at": "2026-11-03"
+        },
+        {
+          "number": 97,
+          "title": "rust-uring-unorig-username: group commit for writes, thin-stream timeouts",
+          "state": "MERGED",
+          "merged_at": "2026-11-06"
+        }
+      ],
+      "result": {
+        "metric": "16 cores",
+        "users": 1000000,
+        "max": true,
+        "req_s": null,
+        "board_prs": [
+          30,
+          73,
+          97
+        ],
+        "scored": "2026-11-06",
+        "as_of": "2026-11-15",
+        "by_cores": {
+          "16": 1000000,
+          "8": 1360000,
+          "4": 1340000,
+          "2": null
+        }
+      }
+    },
+    {
+      "challenge": "million-users",
+      "entry": "rust-tokio",
+      "language": "Rust",
+      "approach": "current-thread tokio per core, SO_REUSEPORT, pipelined tokio-postgres",
+      "dir": "million-users/rust-tokio",
+      "upstream": {
+        "repo": "arjaythedev/million-users-challenge",
+        "commit": "c5be4ac4cb5a2b470baa70def6131adcadbb021a",
+        "path": "submissions/rust-tokio-unorig-username",
+        "tree": "2e4f24b0d7364c9a675d2ef2b301bacb1424913c"
+      },
+      "prs": [
+        {
+          "number": 11,
+          "title": "Add rust-tokio-unorig-username submission",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "16 cores",
+        "users": 1000000,
+        "max": true,
+        "req_s": null,
+        "board_prs": [
+          11
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15",
+        "by_cores": {
+          "16": 1000000,
+          "8": 1260000,
+          "4": 960000,
+          "2": null
+        }
+      }
+    },
+    {
+      "challenge": "multicore",
+      "entry": "c-epoll",
+      "language": "C",
+      "approach": "epoll, own Postgres client, bcrypt and gzip, batched reads as index-scan pipelines, direct",
+      "dir": "multicore/c-epoll",
+      "upstream": {
+        "repo": "arjaythedev/multicore-server-challenge",
+        "commit": "6145e7291a3625c184a58b63b86ed9d1f7304700",
+        "path": "submissions/c-epoll-unorig-username",
+        "tree": "57cf97b2256537e010f1135958e100d49300bad2"
+      },
+      "prs": [
+        {
+          "number": 203,
+          "title": "Add c-epoll-unorig-username submission",
+          "state": "MERGED",
+          "merged_at": "2026-11-04"
+        },
+        {
+          "number": 226,
+          "title": "Update c-epoll-unorig-username: a lane for reads by key, first hasher at SCHED_BATCH",
+          "state": "OPEN",
+          "merged_at": null
+        }
+      ],
+      "result": {
+        "metric": "Users",
+        "users": 210000,
+        "max": false,
+        "req_s": 52012,
+        "board_prs": [
+          203
+        ],
+        "scored": null,
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "multicore",
+      "entry": "go-epoll",
+      "language": "Go",
+      "approach": "hand-written epoll loops, pgx pgconn, one read statement per window, group commit, own bcrypt",
+      "dir": "multicore/go-epoll",
+      "upstream": {
+        "repo": "arjaythedev/multicore-server-challenge",
+        "commit": "6145e7291a3625c184a58b63b86ed9d1f7304700",
+        "path": "submissions/go-epoll-unorig-username",
+        "tree": "8ee1ac926888eab8940232371e7ffeb204f267c4"
+      },
+      "prs": [
+        {
+          "number": 89,
+          "title": "Add go-epoll-unorig-username submission",
+          "state": "MERGED",
+          "merged_at": "2026-10-28"
+        }
+      ],
+      "result": {
+        "metric": "Users",
+        "users": 120000,
+        "max": false,
+        "req_s": 30100,
+        "board_prs": [
+          89
+        ],
+        "scored": null,
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "multicore",
+      "entry": "rust-tokio",
+      "language": "Rust",
+      "approach": "tokio, tokio-postgres, batched unnest() reads, group commit, own bcrypt",
+      "dir": "multicore/rust-tokio",
+      "upstream": {
+        "repo": "arjaythedev/multicore-server-challenge",
+        "commit": "6145e7291a3625c184a58b63b86ed9d1f7304700",
+        "path": "submissions/rust-tokio-unorig-username",
+        "tree": "9dabb5157b05c9d747855053614cd3be8da70e73"
+      },
+      "prs": [
+        {
+          "number": 90,
+          "title": "Add rust-tokio-unorig-username submission",
+          "state": "MERGED",
+          "merged_at": "2026-10-28"
+        },
+        {
+          "number": 119,
+          "title": "Update rust-tokio-unorig-username: group commit for writes",
+          "state": "MERGED",
+          "merged_at": "2026-10-30"
+        }
+      ],
+      "result": {
+        "metric": "Users",
+        "users": 110000,
+        "max": false,
+        "req_s": 27975,
+        "board_prs": [
+          119
+        ],
+        "scored": null,
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "c-iouring",
+      "language": "C",
+      "approach": "io_uring, SQLite B-tree cursor reads, group commit, PGO",
+      "dir": "twelve-dollar/c-iouring-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/c-iouring-unorig-username",
+        "tree": "510dd654d48d9ebd7a8d7b02baa8018f63f3c972"
+      },
+      "prs": [
+        {
+          "number": 184,
+          "title": "Add c-iouring-unorig-username submission (C, io_uring, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        },
+        {
+          "number": 290,
+          "title": "c-iouring-unorig-username: B-tree reads, bounded recovery after a stall (follow-up to #184, re-score request)",
+          "state": "MERGED",
+          "merged_at": "2026-11-03"
+        },
+        {
+          "number": 362,
+          "title": "c-iouring-unorig-username: commit writes at most every 20 ms, keep the WAL file between log restarts (follow-up to #290, re-score request)",
+          "state": "OPEN",
+          "merged_at": null
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 280000,
+        "max": false,
+        "req_s": 26688,
+        "board_prs": [
+          290
+        ],
+        "scored": "2026-11-03",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "asm-iouring",
+      "language": "x86-64 assembly",
+      "approach": "NASM, io_uring through raw syscalls, group commit",
+      "dir": "twelve-dollar/asm-iouring-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/asm-iouring-unorig-username",
+        "tree": "fa432d0ddf49bd4ef824f3af446307c41c6c1819"
+      },
+      "prs": [
+        {
+          "number": 182,
+          "title": "Add asm-iouring-unorig-username submission (x86-64 NASM, raw io_uring, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        },
+        {
+          "number": 206,
+          "title": "Update asm-iouring-unorig-username: 256 accepts in flight",
+          "state": "MERGED",
+          "merged_at": "2026-10-30"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 250000,
+        "max": false,
+        "req_s": 24053,
+        "board_prs": [
+          206
+        ],
+        "scored": "2026-10-30",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "zig-iouring",
+      "language": "Zig",
+      "approach": "std.os.linux.IoUring, group commit, PGO-built SQLite",
+      "dir": "twelve-dollar/zig-iouring-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/zig-iouring-unorig-username",
+        "tree": "3bc99b96aac98e8aca0f4769e7130efb6b62269b"
+      },
+      "prs": [
+        {
+          "number": 190,
+          "title": "Add zig-iouring-unorig-username submission (Zig, io_uring, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 235000,
+        "max": false,
+        "req_s": 22785,
+        "board_prs": [
+          190
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "c-epoll",
+      "language": "C",
+      "approach": "one epoll loop, group commit, PGO",
+      "dir": "twelve-dollar/c-epoll-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/c-epoll-unorig-username",
+        "tree": "aea59493118043b684f7b3dc60e39136904a6c46"
+      },
+      "prs": [
+        {
+          "number": 183,
+          "title": "Add c-epoll-unorig-username submission (C, epoll, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 210000,
+        "max": false,
+        "req_s": 20425,
+        "board_prs": [
+          183
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "zig-epoll",
+      "language": "Zig",
+      "approach": "one epoll loop, group commit, own SHA-256",
+      "dir": "twelve-dollar/zig-epoll-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/zig-epoll-unorig-username",
+        "tree": "62ac880fbc29ac698c95f3d0bceb2731739bbd04"
+      },
+      "prs": [
+        {
+          "number": 189,
+          "title": "Add zig-epoll-unorig-username submission (Zig, epoll, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 200000,
+        "max": false,
+        "req_s": 19661,
+        "board_prs": [
+          189
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "go-epoll",
+      "language": "Go",
+      "approach": "raw epoll syscalls, SQLite through cgo, group commit",
+      "dir": "twelve-dollar/go-epoll-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/go-epoll-unorig-username",
+        "tree": "a2e39a4962752ea93208c38292b93c6962e91bdf"
+      },
+      "prs": [
+        {
+          "number": 186,
+          "title": "Add go-epoll-unorig-username submission (Go, raw epoll, SQLite via cgo; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 165000,
+        "max": false,
+        "req_s": 16020,
+        "board_prs": [
+          186
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "asm-epoll",
+      "language": "x86-64 assembly",
+      "approach": "NASM, one epoll loop, no libc for its own code",
+      "dir": "twelve-dollar/asm-epoll-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/asm-epoll-unorig-username",
+        "tree": "66c570628db95ad1384292d44f617d42345adc32"
+      },
+      "prs": [
+        {
+          "number": 181,
+          "title": "Add asm-epoll-unorig-username submission (x86-64 NASM, epoll, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 155000,
+        "max": false,
+        "req_s": 15256,
+        "board_prs": [
+          181
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "cobol-gnucobol",
+      "language": "COBOL",
+      "approach": "GnuCOBOL 3.2, epoll and SQLite through CALL STATIC",
+      "dir": "twelve-dollar/cobol-gnucobol-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/cobol-gnucobol-unorig-username",
+        "tree": "246429659ad81cb7ac3aa23da2243f00fd6f5b69"
+      },
+      "prs": [
+        {
+          "number": 185,
+          "title": "Add cobol-gnucobol-unorig-username submission (COBOL, GnuCOBOL, epoll, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 126000,
+        "max": false,
+        "req_s": 12398,
+        "board_prs": [
+          185
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "java-nio",
+      "language": "Java",
+      "approach": "NIO selector, SQLite through FFM, no JDBC",
+      "dir": "twelve-dollar/java-nio-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/java-nio-unorig-username",
+        "tree": "7262125facc4d91fafc00f024360beb93b2f14ea"
+      },
+      "prs": [
+        {
+          "number": 187,
+          "title": "Add java-nio-unorig-username submission (Java 25, NIO, SQLite via FFM; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 125000,
+        "max": false,
+        "req_s": 12303,
+        "board_prs": [
+          187
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "rust-iouring",
+      "language": "Rust",
+      "approach": "io-uring crate, one thread, group commit",
+      "dir": "twelve-dollar/rust-iouring-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/rust-iouring-unorig-username",
+        "tree": "a3a8704c36dc5a4452735cb5f6674cbca2a60433"
+      },
+      "prs": [
+        {
+          "number": 188,
+          "title": "Add rust-iouring-unorig-username submission (Rust, io_uring, SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-10-29"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 120000,
+        "max": false,
+        "req_s": 11799,
+        "board_prs": [
+          188
+        ],
+        "scored": "2026-10-29",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "lua-neovim",
+      "language": "Lua",
+      "approach": "Neovim as the server, libuv, LuaJIT FFI to SQLite",
+      "dir": "twelve-dollar/lua-neovim-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/lua-neovim-unorig-username",
+        "tree": "ee8fc4cb66902d27eb9a43929f9d06b347e73b9c"
+      },
+      "prs": [
+        {
+          "number": 443,
+          "title": "Add lua-neovim-unorig-username submission (Neovim as the web server: libuv, LuaJIT FFI to SQLite; direct on :80)",
+          "state": "MERGED",
+          "merged_at": "2026-11-14"
+        },
+        {
+          "number": 463,
+          "title": "Update lua-neovim-unorig-username: constant-time JWT check, pinned SQLite, reads outside the write transaction",
+          "state": "OPEN",
+          "merged_at": null
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 110000,
+        "max": false,
+        "req_s": 10785,
+        "board_prs": [
+          443
+        ],
+        "scored": "2026-11-14",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "tcl-tclsh",
+      "language": "Tcl",
+      "approach": "tclsh 8.6 event loop, SQLite's own Tcl binding, behind Nginx",
+      "dir": "twelve-dollar/tcl-tclsh-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/tcl-tclsh-unorig-username",
+        "tree": "a72bdb6648779ff37d42026eccd722ff870e76b1"
+      },
+      "prs": [
+        {
+          "number": 456,
+          "title": "Add tcl-tclsh-unorig-username submission (the feed API in tclsh 8.6, SQLite's original home; Nginx)",
+          "state": "MERGED",
+          "merged_at": "2026-11-15"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 24000,
+        "max": false,
+        "req_s": 2364,
+        "board_prs": [
+          456
+        ],
+        "scored": "2026-11-15",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "prolog-swipl",
+      "language": "Prolog",
+      "approach": "SWI-Prolog, routes as clauses, JSON as a DCG, behind Nginx",
+      "dir": "twelve-dollar/prolog-swipl-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/prolog-swipl-unorig-username",
+        "tree": "f388aef9bd82e5d026149e09ed9a84dc4f56bdae"
+      },
+      "prs": [
+        {
+          "number": 455,
+          "title": "Add prolog-swipl-unorig-username submission (the API as a logic program: routes are clauses, JSON is a DCG; Nginx)",
+          "state": "MERGED",
+          "merged_at": "2026-11-15"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 24000,
+        "max": false,
+        "req_s": 2362,
+        "board_prs": [
+          455
+        ],
+        "scored": "2026-11-15",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "tex-luatex",
+      "language": "TeX",
+      "approach": "a LuaTeX job as the server, JSON bodies as macro expansions, behind Nginx",
+      "dir": "twelve-dollar/tex-luatex-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/tex-luatex-unorig-username",
+        "tree": "e76b8e38118cfacd11a021d70ff7fbd76470ffe6"
+      },
+      "prs": [
+        {
+          "number": 457,
+          "title": "Add tex-luatex-unorig-username submission (the web server is a TeX job; Nginx)",
+          "state": "MERGED",
+          "merged_at": "2026-11-15"
+        },
+        {
+          "number": 468,
+          "title": "Update tex-luatex-unorig-username: serve direct, hold every connection with epoll",
+          "state": "OPEN",
+          "merged_at": null
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 24000,
+        "max": false,
+        "req_s": 2362,
+        "board_prs": [
+          457
+        ],
+        "scored": "2026-11-15",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "elisp-emacs",
+      "language": "Emacs Lisp",
+      "approach": "Emacs in batch mode, built-in SQLite, behind Nginx",
+      "dir": "twelve-dollar/elisp-emacs-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/elisp-emacs-unorig-username",
+        "tree": "9bbc0c2cb0b9c4b0c9fe7ace9cebffc355555247"
+      },
+      "prs": [
+        {
+          "number": 444,
+          "title": "Add elisp-emacs-unorig-username submission (GNU Emacs as the web server: built-in SQLite, behind Nginx)",
+          "state": "MERGED",
+          "merged_at": "2026-11-14"
+        },
+        {
+          "number": 464,
+          "title": "Update elisp-emacs-unorig-username: serve direct, close connections past 32",
+          "state": "OPEN",
+          "merged_at": null
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 24000,
+        "max": false,
+        "req_s": 2359,
+        "board_prs": [
+          444
+        ],
+        "scored": "2026-11-14",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "octave-sockets",
+      "language": "GNU Octave",
+      "approach": "server.m plus a small C++ oct-file for epoll and SQLite, direct",
+      "dir": "twelve-dollar/octave-sockets-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/octave-sockets-unorig-username",
+        "tree": "bf91bfe35777e0fb03851509cc34a240e9d76754"
+      },
+      "prs": [
+        {
+          "number": 458,
+          "title": "Add octave-sockets-unorig-username submission (the web server is GNU Octave; direct)",
+          "state": "MERGED",
+          "merged_at": "2026-11-15"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 18500,
+        "max": false,
+        "req_s": 1806,
+        "board_prs": [
+          458
+        ],
+        "scored": "2026-11-15",
+        "as_of": "2026-11-15"
+      }
+    },
+    {
+      "challenge": "twelve-dollar",
+      "entry": "zsh-ztcp",
+      "language": "Zsh",
+      "approach": "ztcp and zselect loop, HMAC-SHA256 in shell arithmetic, behind Nginx",
+      "dir": "twelve-dollar/zsh-ztcp-unorig-username",
+      "upstream": {
+        "repo": "arjaythedev/twelve-dollar-server-challenge",
+        "commit": "5e2050f496d9342a4e42e2c393d296ad6eda73ba",
+        "path": "submissions/zsh-ztcp-unorig-username",
+        "tree": "701871ffed6b5b5f4e5d86467505ac078f3f3df9"
+      },
+      "prs": [
+        {
+          "number": 459,
+          "title": "Add zsh-ztcp-unorig-username submission (the Z shell is the web server: ztcp, zselect, HMAC in $(( )); behind Nginx)",
+          "state": "MERGED",
+          "merged_at": "2026-11-15"
+        }
+      ],
+      "result": {
+        "metric": "Users held 5 min",
+        "users": 8500,
+        "max": false,
+        "req_s": 833,
+        "board_prs": [
+          459
+        ],
+        "scored": "2026-11-15",
+        "as_of": "2026-11-15"
+      }
+    }
+  ]
+}

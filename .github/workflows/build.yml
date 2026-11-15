@@ -1,0 +1,47 @@
+# Builds every entry the way the upstream harnesses do: install.sh as root, then build.sh as the normal user,
+# from the repo root, on Ubuntu 24.04 (the OS of all three benchmark boxes). Then checks the docs against the tree.
+name: build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  entries:
+    runs-on: ubuntu-24.04
+    outputs:
+      dirs: ${{ steps.dirs.outputs.dirs }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: dirs
+        run: echo "dirs=$(jq -c '[.entries[].dir]' entries.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: entries
+    name: build ${{ matrix.dir }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJson(needs.entries.outputs.dirs) }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: install.sh (root)
+        run: sudo bash "${{ matrix.dir }}/install.sh"
+      - name: build.sh
+        run: bash "${{ matrix.dir }}/build.sh"
+
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.15"
+      - name: check_docs.py tests
+        run: python3 -m unittest discover -s scripts -v
+      - name: README and entries.json against the tree
+        run: python3 scripts/check_docs.py

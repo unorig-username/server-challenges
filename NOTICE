@@ -1,0 +1,24 @@
+server-challenges
+Copyright (c) 2026 Corey Jones. MIT license, see LICENSE.
+
+The entries in million-users/, multicore/ and twelve-dollar/ were written for, and first published in,
+these challenges by arjaythedev, each MIT licensed ("Copyright (c) 2026 arjaythedev and the challenge
+contributors"):
+
+  https://github.com/arjaythedev/million-users-challenge
+  https://github.com/arjaythedev/multicore-server-challenge
+  https://github.com/arjaythedev/twelve-dollar-server-challenge
+
+The challenge specs, schemas, seed data, test suites, load generators and leaderboards belong to those
+projects and are not copied here; this repo links to them. Results in README.md and entries.json are
+read from their LEADERBOARD.md files.
+
+Third-party material inside the entries keeps its own license, noted in the file it appears in:
+
+  multicore/c-epoll/src/bf_consts.h and multicore/go-epoll/blowfish_consts.go: Blowfish constants from
+  golang.org/x/crypto, Copyright 2009 The Go Authors, BSD 3-Clause (full text in each file).
+
+  multicore/rust-tokio/src/blowfish_consts.rs: Blowfish constants from the RustCrypto blowfish crate
+  0.10.0, MIT OR Apache-2.0.
+
+Ideas and code adapted from other challenge entrants are credited in each entry's README.md.
