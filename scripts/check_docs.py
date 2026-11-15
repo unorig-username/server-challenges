@@ -1,11 +1,12 @@
 """Checks that README.md and entries.json agree with the files in the repo.
 
-- Every relative link in README.md points at a file or directory that exists.
+- Every relative link in README.md points at a file or directory inside the repo that exists.
 - Every entry in entries.json has a directory with install.sh, build.sh and start.sh, and that
   directory is linked from README.md.
 - Every directory under the challenge folders is in entries.json, and nothing is listed twice.
 - Each entry's files are byte for byte the upstream submission: the git tree hash of its directory
-  equals the upstream tree hash recorded in entries.json (which also covers file modes).
+  at HEAD equals the upstream tree hash recorded in entries.json (which also covers file modes),
+  and the working tree has no uncommitted edits to it.
 - The entry and language counts the README states match entries.json.
 
 Usage: python3 scripts/check_docs.py [repo-root]
@@ -15,24 +16,19 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 CHALLENGES = ("million-users", "multicore", "twelve-dollar")
-LINK = re.compile(r"\]\(([^)\s]+)\)")
+# [text](target) or [text](<target> "title")
+LINK = re.compile(r"\]\(<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\)")
 
 
-def tree_hash(root, rel):
-    """Git tree hash of a directory as it is on disk (ignored files excluded), without touching the real index."""
-    with tempfile.TemporaryDirectory() as tmp:
-        env = {**os.environ, "GIT_INDEX_FILE": str(Path(tmp) / "index")}
-        run = lambda *a: subprocess.run(["git", "-C", str(root), *a], env=env, check=True, capture_output=True, text=True).stdout.strip()
-        run("add", "--", rel)
-        return run("write-tree", f"--prefix={rel}/")
+def git(root, *args):
+    return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
 
 
 def check(root):
-    root = Path(root)
+    root = Path(root).resolve()
     errors = []
     readme = (root / "README.md").read_text()
     entries = json.loads((root / "entries.json").read_text())["entries"]
@@ -41,10 +37,14 @@ def check(root):
     for target in LINK.findall(readme):
         if re.match(r"^[a-z]+:|^#", target):
             continue
-        path = target.split("#")[0].rstrip("/")
-        linked.add(path)
-        if not (root / path).exists():
+        # A leading / is the repo root, as GitHub renders it. normpath, not resolve: links are lexical.
+        full = Path(os.path.normpath(root / target.split("#")[0].lstrip("/")))
+        if not full.is_relative_to(root):
+            errors.append(f"README.md links to {target}, which is outside the repo")
+        elif not full.exists():
             errors.append(f"README.md links to {target}, which does not exist")
+        else:
+            linked.add(full.relative_to(root).as_posix())
 
     dirs = [e["dir"] for e in entries]
     for d in sorted({d for d in dirs if dirs.count(d) > 1}):
@@ -65,13 +65,19 @@ def check(root):
                 errors.append(f"{d} has no {f}")
         if d not in linked:
             errors.append(f"README.md does not link {d}")
-        got = tree_hash(root, d)
-        if got != e["upstream"]["tree"]:
-            errors.append(f"{d} differs from upstream {e['upstream']['path']} (tree {got}, expected {e['upstream']['tree']})")
+        tree = git(root, "rev-parse", f"HEAD:{d}")
+        if tree.returncode:
+            errors.append(f"{d}: cannot read its committed tree ({tree.stderr.strip()})")
+            continue
+        if tree.stdout.strip() != e["upstream"]["tree"]:
+            errors.append(f"{d} differs from upstream {e['upstream']['path']} (committed tree {tree.stdout.strip()}, expected {e['upstream']['tree']})")
+        # Untracked files (a .DS_Store) are not counted; they only matter once committed, and then the tree hash catches them.
+        if git(root, "diff", "--quiet", "HEAD", "--", d).returncode:
+            errors.append(f"{d} has uncommitted changes")
 
-    for claim in (f"{len(entries)} entries", f"{len({e['language'] for e in entries})} languages"):
-        if claim not in readme:
-            errors.append(f"README.md should say '{claim}' (counted from entries.json)")
+    for n, noun in ((len(entries), "entries"), (len({e["language"] for e in entries}), "languages")):
+        if not re.search(rf"(?<![\d,]){n} {noun}\b", readme):
+            errors.append(f"README.md should say '{n} {noun}' (counted from entries.json)")
     return errors
 
 

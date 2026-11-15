@@ -96,11 +96,14 @@ Each lesson links where it was measured. Unless it says "the board", a number is
 in that PR or README, not from the benchmark box, and only compares runs on the same rig.
 
 **1. io_uring beat epoll on one vCPU, but not because syscalls are cheaper.** In each language where I wrote both, the
-io_uring entry beat its epoll twin on the $12 board: C 280,000 vs 210,000, assembly 250,000 vs 155,000, Zig 235,000
-vs 200,000. But the [c-iouring README](twelve-dollar/c-iouring-unorig-username/README.md) measured the bare io_uring
-loop level with epoll at 64 connections and 8% behind at 1,024, because two thirds of the CPU was the kernel's TCP
-work either way. The win came from what io_uring makes possible: waiting for a batch of completions (below), and
-registered file descriptors, so one process holds more connections than `LimitNOFILE`. It also has its own traps.
+io_uring entry beat its epoll twin on the $12 board: C 250,000 vs 210,000 (the C io_uring entry's first scored run,
+before the B-tree reads in lesson 5), assembly 250,000 vs 155,000, Zig 235,000 vs 200,000. But the
+[c-iouring README](twelve-dollar/c-iouring-unorig-username/README.md) measured the bare io_uring loop level with epoll
+at 64 connections and 8% behind at 1,024, because two thirds of the CPU was the kernel's TCP work either way. The C
+pair share feed range scans, group commit and PGO ([#183](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/183)). What the io_uring entry
+adds is a wait for a batch of completions after a busy pass (21% less CPU per request, lesson 2), and registered file
+descriptors, so one process holds more connections than `LimitNOFILE` ([#184](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/184)).
+io_uring also has its own traps.
 Cancelling a closed connection's operations by descriptor makes the kernel walk every pending operation on the ring;
 cancelling by completion tag is a hash lookup. With 20,000 idle connections that took CPU per request from about
 290 us to about 20 us ([#184](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/184),
@@ -109,7 +112,7 @@ cancelling by completion tag is a hash lookup. With 20,000 idle connections that
 the Rust io_uring entry holds 120,000, below the Go epoll one at 165,000.
 
 **2. Do more work per wake-up.** The cheapest request is the one that shares a syscall, a round trip and a commit
-with its neighbours. On the $12 box, after a busy pass the loop waits for up to 128 completions or a few
+with its neighbours. In the $12 entries, after a busy pass the loop waits for up to 128 completions or a few
 milliseconds: 21% less CPU per request in C, 11% in Zig and Rust
 ([#184](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/184),
 [#190](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/190),
@@ -143,11 +146,14 @@ over a connection only once its first request has arrived, so each new connectio
 pages, inline, in whichever `COMMIT` crosses the line, and that fsync stalls every client in the batch. The C,
 assembly, Zig, Go, COBOL, Java and Rust entries run `PASSIVE` checkpoints in a helper process instead
 ([cobol-gnucobol](twelve-dollar/cobol-gnucobol-unorig-username/README.md),
-[#183](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/183)). The top entry then stopped asking
-the SQL engine for reads at all: `/feed` and `/posts/:id` walk SQLite's B-tree cursors directly, with the reference
-SQL as the fallback, an idea its README credits to rust-iouring-kensac. The follow-up that added it, with a
-low-priority checkpoint thread and bounded recovery after a stall, took the board score from 250,000 to 280,000 ([#290](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/290)). SQLite's own
-page cache beat `mmap` by 4% CPU per request ([c-iouring](twelve-dollar/c-iouring-unorig-username/README.md)).
+[#183](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/183)). My best $12 entry, c-iouring, then stopped asking the SQL engine
+for reads at all: `/feed` and `/posts/:id` walk SQLite's B-tree cursors directly, with the reference SQL as the
+fallback. That read code is adapted from another entrant's entry, rust-iouring-kensac
+([#248](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/248), [#264](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/264)),
+and so are the ideas of a low-priority checkpoint thread, bounded reads and answers after a burst, and SQLite's page
+cache over `mmap`, as the c-iouring [credits](twelve-dollar/c-iouring-unorig-username/README.md#credits) say. The
+follow-up that brought them in took the board score from 250,000 to 280,000
+([#290](https://github.com/arjaythedev/twelve-dollar-server-challenge/pull/290)). On my rig the page cache beat `mmap` by 4% CPU per request.
 
 **6. On 2 GB, memory per connection is the next wall.** Each open connection costs about 4.3 KB of kernel memory
 (3.3 KB of slab, 1 KB of dentries and inodes), so every 100 MB the process keeps is about 23,000 users. A larger WAL
@@ -233,7 +239,7 @@ cd twelve-dollar-server-challenge
 cp -R ../server-challenges/twelve-dollar/c-iouring-unorig-username submissions/
 bash seed/make-seed.sh                                     # needs node >= 18 and sqlite3
 sudo bash submissions/c-iouring-unorig-username/install.sh # once, as root, on Ubuntu 24.04
-bash test/run.sh submissions/c-iouring-unorig-username     # builds, starts, runs the 42 checks
+bash test/run.sh submissions/c-iouring-unorig-username     # needs curl, jq, openssl; builds, starts, runs the 42 checks
 ```
 
 The other two work the same way, with Postgres:
@@ -244,7 +250,9 @@ The other two work the same way, with Postgres:
   `test/run.sh` also builds the conformance suite with Go, and needs `psql` and `curl`.
 
 `test/run.sh` takes any folder name, so the shorter names here work as they are; upstream's convention is
-`<language>-<framework>-<github-username>`. To load test, follow each repo's `bench/` docs.
+`<language>-<framework>-<github-username>`. To load test, the $12 repo's quick start uses k6
+(`k6 run -e VUS=1000 bench/load.js`); Million Users and Multicore document their load generators in
+`bench/README.md`.
 
 ## How this repo is put together
 
@@ -259,7 +267,7 @@ The other two work the same way, with Postgres:
   OS of all three benchmark boxes, the way upstream CI does it: `sudo bash <entry>/install.sh`, then
   `bash <entry>/build.sh` as the normal user. A docs job runs [`scripts/check_docs.py`](scripts/check_docs.py): every
   relative link in this README resolves, every entry directory is in `entries.json` and the other way round, and each
-  directory's git tree hash still equals upstream's, so a stray edit to an entry fails the build.
+  directory's committed git tree hash still equals upstream's, so a stray edit to an entry fails the build.
 
 ```bash
 python3 scripts/check_docs.py && python3 -m unittest discover -s scripts
